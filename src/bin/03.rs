@@ -101,7 +101,6 @@ pub fn part_two(input: &str) -> Option<u32> {
     let mut hm = HashMap::new();
     let grid = parse(input);
     let nums = get_num_positions(&grid);
-    let mut sum = 0;
     for num in &nums {
         let symbols = get_adjacent_symbols(num.0, num.1, num.2, &grid);
         for s in symbols {
