@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 fn get_rank(card: char) -> i64 {
     match card {
         '2' => { 1 },
@@ -29,62 +31,27 @@ fn parse(input: &str) -> Vec<(i64, Vec<i64>)> {
     ret_vec
 }
 
-fn get_rank2(card: char) -> i64 {
-    match card {
-        '2' => { 1 },
-        '3' => { 2 },
-        '4' => { 3 },
-        '5' => { 4 },
-        '6' => { 5 },
-        '7' => { 6 },
-        '8' => { 7 },
-        '9' => { 8 },
-        'T' => { 9 },
-        'J' => { 0 },
-        'Q' => { 11 },
-        'K' => { 12 },
-        'A' => { 13 },
-        _ => { 0 }
-    }
-}
-
-fn parse2(input: &str) -> Vec<(i64, Vec<i64>)> {
-    let spl = input.split("\n").collect::<Vec<&str>>();
-    let mut ret_vec = Vec::new();
-    for s in spl {
-        let hand_split = s.split_whitespace().collect::<Vec<&str>>();
-        let bid = hand_split[1].parse().unwrap();
-        let ranks = hand_split[0].chars().map(|c| get_rank2(c)).collect::<Vec<i64>>();
-        ret_vec.push((bid, ranks));
-    }
-    ret_vec
-}
-
 fn hand_score(hand: &Vec<i64>) -> i64 {
-    let mut hand = hand.clone();
-    hand.sort();
-    let mut rank = 1;
-    if hand.iter().all(|v| *v == hand[0]) {
-        rank = 7;
+    let mut hist = HashMap::new();
+
+    for v in hand {
+        let entry = hist.entry(*v).or_insert(0);
+        *entry += 1;
     }
-    else if hand[1] == hand[2] && hand[1] == hand[3] && (hand[1] == hand[0] || hand[1] == hand[4]) {
-        rank = 6;
+    let mut counts = hist.values().map(|v| *v).collect::<Vec<usize>>();
+    counts.sort();
+    counts.reverse();
+    if counts[0] == 5 {
+        return 7;
     }
-    else if hand[0] == hand[1] && hand[3] == hand[4] && (hand[2] == hand[1] || hand[2] == hand[3]) {
-        rank = 5;
+    match (counts[0], counts[1]) {
+        (4, 1) => { 6 },
+        (3, 2) => { 5 },
+        (3, 1) => { 4 },
+        (2, 2) => { 3 },
+        (2, 1) => { 2 },
+        _ => { 1 }
     }
-    else if (hand[0] == hand[1] && hand[0] == hand[2]) || (hand[1] == hand[2] && hand[1] == hand[3]) ||
-       (hand[2] == hand[3] && hand[2] == hand[4]) {
-        rank = 4;
-    }
-    else if (hand[0] == hand[1] && (hand[2] == hand[3] || hand[3] == hand[4])) ||
-       (hand[1] == hand[2] && hand[3] == hand[4]) {
-        rank = 3;
-    }
-    else if hand[0] == hand[1] || hand[1] == hand[2] || hand[2] == hand[3] || hand[3] == hand[4] {
-        rank = 2;
-    }
-    rank
 }
 
 fn hand_value(hand: &Vec<i64>) -> i64 {
@@ -120,7 +87,14 @@ pub fn part_one(input: &str) -> Option<i64> {
 }
 
 pub fn part_two(input: &str) -> Option<i64> {
-    let mut hands = parse2(input);
+    let mut hands = parse(input);
+    for j in 0..hands.len() {
+        for i in 0..hands[j].1.len() {
+            if hands[j].1[i] == 10 {
+                hands[j].1[i] = 0;
+            }
+        }
+    }
     hands.sort_by_key(|(_,h)| hand_value(h));
     let mut sum = 0;
     for i in 0..hands.len() {
