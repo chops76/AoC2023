@@ -12,83 +12,11 @@ fn parse(input: &str) -> Vec<Vec<char>> {
     input.split("\n").map(|s| s.chars().collect::<Vec<char>>()).collect()
 }
 
-pub fn part_one(input: &str) -> Option<u32> {
-    let grid = parse(input);
-    let mut start_x = 0;
-    let mut start_y = 0;
-    for y in 0..grid.len() {
-        for x in 0..grid[y].len() {
-            if grid[y][x] == 'S' {
-                start_x = x;
-                start_y = y;
-                break;
-            }
-        }
-    }
-    let mut count = 0;
+fn walk_path(start_x: usize, start_y: usize, start_dir: Dir, grid: &Vec<Vec<char>>) -> HashSet<(usize, usize)> {
     let mut cur_x = start_x;
     let mut cur_y = start_y;
-    let mut dir = Dir::Down;  // This is a cheat, won't always work
-    loop {
-        count += 1;
-        match dir {
-            Dir::Up => {
-                cur_y -= 1;
-                if grid[cur_y][cur_x] == 'F' {
-                    dir = Dir::Right;
-                } else if grid[cur_y][cur_x] == '7' {
-                    dir = Dir::Left;
-                }
-            },
-            Dir::Down => {
-                cur_y += 1;
-                if grid[cur_y][cur_x] == 'L' {
-                    dir = Dir::Right;
-                } else if grid[cur_y][cur_x] == 'J' {
-                    dir = Dir::Left;
-                }
-            },
-            Dir::Right => {
-                cur_x += 1;
-                if grid[cur_y][cur_x] == '7' {
-                    dir = Dir::Down;
-                } else if grid[cur_y][cur_x] == 'J' {
-                    dir = Dir::Up;
-                }
-            },
-            Dir::Left => {
-                cur_x -= 1;
-                if grid[cur_y][cur_x] == 'F' {
-                    dir = Dir::Down;
-                } else if grid[cur_y][cur_x] == 'L' {
-                    dir = Dir::Up;
-                }
-            }
-        }
-        if cur_x == start_x && cur_y == start_y {
-            break;
-        }
-    }
-    Some(count / 2)
-}
-
-pub fn part_two(input: &str) -> Option<u32> {
+    let mut dir = start_dir;
     let mut seen = HashSet::new();
-    let grid = parse(input);
-    let mut start_x = 0;
-    let mut start_y = 0;
-    for y in 0..grid.len() {
-        for x in 0..grid[y].len() {
-            if grid[y][x] == 'S' {
-                start_x = x;
-                start_y = y;
-                break;
-            }
-        }
-    }
-    let mut cur_x = start_x;
-    let mut cur_y = start_y;
-    let mut dir = Dir::Down;  // This is a cheat, won't always work
     loop {
         seen.insert((cur_x, cur_y));
         match dir {
@@ -129,6 +57,40 @@ pub fn part_two(input: &str) -> Option<u32> {
             break;
         }
     }
+    seen
+}
+
+pub fn part_one(input: &str) -> Option<u32> {
+    let grid = parse(input);
+    let mut start_x = 0;
+    let mut start_y = 0;
+    for y in 0..grid.len() {
+        for x in 0..grid[y].len() {
+            if grid[y][x] == 'S' {
+                start_x = x;
+                start_y = y;
+                break;
+            }
+        }
+    }
+    let visited = walk_path(start_x, start_y, Dir::Down, &grid);
+    Some(visited.len() as u32 / 2)
+}
+
+pub fn part_two(input: &str) -> Option<u32> {
+    let grid = parse(input);
+    let mut start_x = 0;
+    let mut start_y = 0;
+    for y in 0..grid.len() {
+        for x in 0..grid[y].len() {
+            if grid[y][x] == 'S' {
+                start_x = x;
+                start_y = y;
+                break;
+            }
+        }
+    }
+    let seen = walk_path(start_x, start_y, Dir::Down, &grid);
     let mut new_grid = grid.clone();
     for y in 0..new_grid.len() {
         for x in 0..new_grid[y].len() {
@@ -148,10 +110,10 @@ pub fn part_two(input: &str) -> Option<u32> {
     }
     
     start_y = 0; 
-    cur_x = start_x;
-    cur_y = start_y;
+    let mut cur_x = start_x;
+    let mut cur_y = start_y;
     let mut inside = Dir::Down;
-    dir = Dir::Right;
+    let mut dir = Dir::Right;
     loop {
         match dir {
             Dir::Up => {
