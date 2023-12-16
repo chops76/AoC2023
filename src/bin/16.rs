@@ -1,3 +1,5 @@
+use rayon::prelude::*;
+
 use std::collections::HashSet;
 use std::collections::VecDeque;
 
@@ -129,15 +131,16 @@ pub fn part_one(input: &str) -> Option<usize> {
 
 pub fn part_two(input: &str) -> Option<usize> {
     let grid = parse(input);
-    let mut best = 0;
+    let mut starting = Vec::new();
     for y in 0..grid.len() {
-        best = best.max(calc((-1,y as i32), Dir::Right, &grid));
-        best = best.max(calc((grid[y].len() as i32,y as i32), Dir::Left, &grid));
+        starting.push(((-1,y as i32), Dir::Right));
+        starting.push(((grid[y].len() as i32,y as i32), Dir::Left));
     }
     for x in 0..grid[0].len() {
-        best = best.max(calc((x as i32, -1), Dir::Down, &grid));
-        best = best.max(calc((x as i32, grid.len() as i32), Dir::Up, &grid));
+        starting.push(((x as i32, -1), Dir::Down));
+        starting.push(((x as i32, grid.len() as i32), Dir::Up));
     }
+    let best = starting.par_iter().map(|(pos, dir)| calc(*pos, *dir, &grid)).max().unwrap();
     Some(best)
 }
 
