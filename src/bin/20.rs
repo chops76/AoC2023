@@ -49,7 +49,6 @@ fn parse(input: &str) -> HashMap<String, Module> {
     for n in keys {
         let connected = hs.get(&n).unwrap().connected.clone();
         for c in &connected {
-            //println!("Looking for {}", c);
             if !hs.get(c).unwrap().memory.contains(&(n.to_string(), false)) {
                 hs.get_mut(c).unwrap().memory.push((n.clone(), false));
             }
@@ -117,8 +116,6 @@ pub fn part_one(input: &str) -> Option<i64> {
             }
         }
     }
-    //println!("{:?}", modules);
-    println!("Low: {}  High: {}", low_pulses, high_pulses);
     Some(low_pulses * high_pulses)
 }
 
